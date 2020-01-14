@@ -5,7 +5,8 @@ export class FetchData extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { todos: [], loading: true };
+        this.state = {
+            todos: [], loading: true, newTodo: '', sorting: 'all', };
     }
 
     componentDidMount() {
@@ -16,10 +17,35 @@ export class FetchData extends Component {
         fetch('todo/' + todoId, { method: 'delete' }).then(data => {
             this.setState(
                 {
-                    todos: this.state.todos.filter((todo) => todo.id != todoId)
+                    todos: this.state.todos.filter((todo) => todo.id !== todoId)
                 });
         });
     }
+
+    handleEnterPress = event => {
+        if (event.key !== 'Enter') {
+            return;
+        }
+        const todoToAdd = {
+            value: this.state.newTodo
+        };
+        fetch('todo', { method: 'post', headers: { 'Content-Type': 'application/json'}, body: JSON.stringify(todoToAdd), }).then(
+            this.setState({
+                todos: [
+                    ...this.state.todos,
+                    todoToAdd
+                ],
+                newTodo: '',
+            })
+        );
+    };
+
+    handleInputChange = event => {
+        this.setState({
+            newTodo: event.target.value
+        });
+        console.log(this.state.newTodo);
+    };
 
     static renderTodosTable(todos, deleteBtnHandler) {
         return (
@@ -33,7 +59,6 @@ export class FetchData extends Component {
                     {todos.map(todo =>
                         <tr key={todo.id}>
                             <td>{todo.value}</td>
-                            <td>{todo.id}</td>
                             <td><button className="btn btn-primary btn-delete"
                                 onClick={
                                     () => deleteBtnHandler(todo.id)
@@ -55,8 +80,13 @@ export class FetchData extends Component {
 
         return (
             <div>
-                <h1 id="tabelLabel" >Weather forecast</h1>
-                <p>This component demonstrates fetching data from the server.</p>
+                <textarea className="todo-input"
+                    //ref={this.inputRef}
+                    onChange={this.handleInputChange}
+                    value={this.state.newTodo}
+                    onKeyPress={this.handleEnterPress}
+                    placeholder="Thine deeds of utmost importance..."
+                />
                 {contents}
             </div>
         );
